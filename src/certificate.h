@@ -32,21 +32,30 @@ class Certificate
      struct DerFormat_t {};
 
 public:
+     struct Format
+     {
+          struct Pem_t {};
+          struct Der_t {};
+
+          static Pem_t Pem;
+          static Der_t Der;
+     };
+
      enum class FingerprintType
      {
           SHA1, SHA256, MD5
      };
 
-     static PemFormat_t PemFormat;
-     static DerFormat_t DerFormat;
+     static PemFormat_t Pem;
+     static DerFormat_t Der;
 
-     Certificate( const boost::filesystem::path& certFile, const PemFormat_t& );
+     Certificate( const boost::filesystem::path& certFile, const Format::Pem_t& );
 
-     Certificate( const Buffer& buffer, const PemFormat_t& );
-     Certificate( const Buffer& buffer, const DerFormat_t& );
+     Certificate( const Buffer& buffer, const Format::Pem_t& );
+     Certificate( const Buffer& buffer, const Format::Der_t& );
 
-     Certificate( const char* data, std::size_t len, const PemFormat_t& );
-     Certificate( const char* data, std::size_t len, const DerFormat_t& );
+     Certificate( const char* data, std::size_t len, const Format::Pem_t& );
+     Certificate( const char* data, std::size_t len, const Format::Der_t& );
 
      Certificate( const Certificate& ) = delete;
      Certificate& operator=( const Certificate& ) = delete;

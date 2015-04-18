@@ -89,31 +89,31 @@ std::pair< const EVP_MD*, int > getAppropriateDigest( const Certificate::Fingerp
 } // namespace {unnamed}
 
 
-Certificate::PemFormat_t Certificate::PemFormat;
-Certificate::DerFormat_t Certificate::DerFormat;
+Certificate::Format::Pem_t Certificate::Format::Pem;
+Certificate::Format::Der_t Certificate::Format::Der;
 
 
-Certificate::Certificate( const boost::filesystem::path& certFile, const PemFormat_t& )
+Certificate::Certificate( const boost::filesystem::path& certFile, const Format::Pem_t& )
      : certificate_( aux::make_x509_from_pem_file( certFile ) )
 {}
 
 
-Certificate::Certificate( const Buffer& buffer, const PemFormat_t& format )
+Certificate::Certificate( const Buffer& buffer, const Format::Pem_t& format )
      : Certificate( buffer.data(), buffer.size(), format )
 {}
 
 
-Certificate::Certificate( const Buffer& buffer, const DerFormat_t& format )
+Certificate::Certificate( const Buffer& buffer, const Format::Der_t& format )
      : Certificate( buffer.data(), buffer.size(), format )
 {}
 
 
-Certificate::Certificate( const char* data, std::size_t len, const PemFormat_t& )
+Certificate::Certificate( const char* data, std::size_t len, const Format::Pem_t& )
      : certificate_( aux::make_x509_from_pem( data, len ) )
 {}
 
 
-Certificate::Certificate( const char* data, std::size_t len, const DerFormat_t& )
+Certificate::Certificate( const char* data, std::size_t len, const Format::Der_t& )
      : certificate_( aux::make_x509_from_der( data, len ) )
 {}
 

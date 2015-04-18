@@ -101,8 +101,8 @@ int main()
 {
      try
      {
-//          openssl::Certificate cert( "/home/alexen/gulaev.pem", openssl::Certificate::PemFormat );
-          openssl::Certificate cert( "/home/alexen/volopaev_fp_cert.pem", openssl::Certificate::PemFormat );
+//          openssl::Certificate cert( "/home/alexen/gulaev.pem", openssl::Certificate::Format::Pem );
+          openssl::Certificate cert( "/home/alexen/volopaev_fp_cert.pem", openssl::Certificate::Format::Pem );
 
           std::cout
                << "Subject: " << cert.subject() << '\n'
