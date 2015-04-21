@@ -7,10 +7,11 @@
 
 #pragma once
 
-#include <openssl/bio.h>
+#include <openssl/ssl.h>
 
 namespace openssl {
 
-void do_client_loop( BIO* connection );
+SSL_CTX* setup_client_ctx();
+int do_client_loop( SSL* ssl );
 
 } // namespace openssl

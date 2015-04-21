@@ -15,11 +15,13 @@
 
 int main()
 {
-     const char* const HOST_PORT = "localhost:6001";
+     static const char* const HOST_PORT = "localhost:6001";
 
      try
      {
           openssl::init();
+
+          SSL_CTX* ctx = openssl::setup_client_ctx();
 
           BIO* connection = BIO_new_connect( const_cast< char* >( HOST_PORT ) );
 
@@ -29,13 +31,35 @@ int main()
           if( BIO_do_connect( connection ) <= 0 )
                ERROR_INTERRUPT( "cannot connect to remote host " << HOST_PORT << "\n" );
 
-          std::cout << "connection established\n";
+          SSL* ssl = SSL_new( ctx );
 
-          openssl::do_client_loop( connection );
+          if( !ssl )
+          {
+               ERROR_INTERRUPT( "cannot create SSL context" );
+          }
 
-          std::cout << "connection closed\n";
+          SSL_set_bio( ssl, connection, connection );
 
-          BIO_free( connection );
+          if( SSL_connect( ssl ) <= 0 )
+          {
+               ERROR_INTERRUPT( "cannot connecting SSL object" );
+          }
+
+          std::cout << "SSL connection opened\n";
+
+          if( openssl::do_client_loop( ssl ) )
+          {
+               SSL_shutdown( ssl );
+          }
+          else
+          {
+               SSL_clear( ssl );
+          }
+
+          std::cout << "SSL connection closed\n";
+
+          SSL_free( ssl );
+          SSL_CTX_free( ctx );
      }
      catch( const std::exception& e )
      {

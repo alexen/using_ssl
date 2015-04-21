@@ -18,9 +18,25 @@
      } \
      while( false )
 
+
+#define REPORT_MESSAGE( stream ) \
+     do{ \
+          std::ostringstream ostr; \
+          ostr << stream; \
+          report_message( ostr.str().c_str() ); \
+     } \
+     while( false )
+
 inline void error_interrupt( const char* filename, int line, const char* msg )
 {
-     fprintf( stderr, "SSL ERROR: [%s:%d]: %s", filename, line, msg );
+     fprintf( stderr, "SSL ERROR: [%s:%d]: %s\n", filename, line, msg );
      ERR_print_errors_fp( stderr );
      exit( -1 );
+}
+
+
+inline void report_message( const char* msg )
+{
+     fprintf( stdout, "SSL: %s\n", msg );
+     fflush( stdout );
 }
