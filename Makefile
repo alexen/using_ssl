@@ -1,4 +1,4 @@
-PRJDIRS := ssl_server ssl_client
+PRJDIRS := ssl_server ssl_client other
 INCLUDE_DIRS := -I$(PWD)
 export CPPFLAGS := -std=c++11 -Wall -Werror -Wpedantic -Wextra -g3 -gdwarf-2 $(INCLUDE_DIRS)
 

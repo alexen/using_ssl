@@ -28,9 +28,6 @@ namespace openssl {
 
 class Certificate
 {
-     struct PemFormat_t {};
-     struct DerFormat_t {};
-
 public:
      struct Format
      {
@@ -45,9 +42,6 @@ public:
      {
           SHA1, SHA256, MD5
      };
-
-     static PemFormat_t Pem;
-     static DerFormat_t Der;
 
      Certificate( const boost::filesystem::path& certFile, const Format::Pem_t& );
 
