@@ -8,6 +8,8 @@ OBJS := $(CPPS:.cpp=.o)
 LIBDIRS :=
 LIBS := -lssl -lcrypto -lpthread
 
+CPPFLAGS += -std=c++11
+
 all: $(TARGET)
 
 $(TARGET): $(OBJS)

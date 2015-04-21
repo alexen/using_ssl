@@ -1,6 +1,9 @@
 PRJDIRS := ssl_server ssl_client other
+
 INCLUDE_DIRS := -I$(PWD)
-export CPPFLAGS := -std=c++11 -Wall -Werror -Wpedantic -Wextra -g3 -gdwarf-2 $(INCLUDE_DIRS)
+DEBUG_OPTS := -g3 -gdwarf-2
+
+export CPPFLAGS := -Wall -Werror -Wpedantic -Wextra $(DEBUG_OPTS) $(INCLUDE_DIRS)
 
 all:
 	for DIR in $(PRJDIRS); do $(MAKE) -C $$DIR all; done
