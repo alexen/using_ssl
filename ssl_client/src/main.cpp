@@ -9,7 +9,6 @@
 #include <boost/exception/diagnostic_information.hpp>
 
 #include <common/init.h>
-#include <common/error.h>
 
 #include "client.h"
 
