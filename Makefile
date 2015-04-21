@@ -1,19 +1,9 @@
-TARGET := using_ssl
+PRJDIRS := ssl_server ssl_client
+INCLUDE_DIRS := -I$(PWD)
+export CPPFLAGS := -std=c++11 -Wall -Werror -Wpedantic -Wextra -g3 -gdwarf-2 $(INCLUDE_DIRS)
 
-SRCDIR := src
-HDRS := $(wildcard $(SRCDIR)/*.h)
-CPPS := $(wildcard $(SRCDIR)/*.cpp)
-OBJS := $(CPPS:.cpp=.o)
-
-CPPFLAGS := -std=c++11 -Wall -Werror -Wpedantic -Wextra -g3 -gdwarf-2
-
-LIBDIRS :=
-LIBS := -lssl -lcrypto -lboost_system
-
-all: $(TARGET)
-
-$(TARGET): $(OBJS)
-	$(CXX) -o $@ $^ $(LIBDIRS) $(LIBS)
+all:
+	for DIR in $(PRJDIRS); do $(MAKE) -C $$DIR all; done
 
 clean:
-	rm -f $(TARGET) $(OBJS)
+	for DIR in $(PRJDIRS); do $(MAKE) -C $$DIR clean; done
