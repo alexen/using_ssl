@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <openssl/err.h>
+#include <common/error.h>
 
 namespace openssl {
 
@@ -35,22 +36,15 @@ void do_server_loop( BIO* connection )
 }
 
 
-void* server_thread( void* args )
+void server_thread( BIO* client )
 {
-     BIO* connection = static_cast< BIO* >( args );
-
-     pthread_detach( pthread_self() );
-
      std::cout << "connection opened" << std::endl;
 
-     do_server_loop( connection );
+     do_server_loop( client );
 
      std::cout << "connection closed" << std::endl;
 
-     BIO_free( connection );
      ERR_remove_state( 0 );
-
-     return nullptr;
 }
 
 } // namespace openssl

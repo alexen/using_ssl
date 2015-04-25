@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include <openssl/bio.h>
+#include <boost/filesystem/path.hpp>
+#include <openssl/ssl.h>
 
 namespace openssl {
 
 void do_server_loop( BIO* connection );
-
-void* server_thread( void* );
+void server_thread( BIO* client );
 
 } // namespace openssl
