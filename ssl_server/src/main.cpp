@@ -18,6 +18,7 @@
 
 static bool stop = false;
 
+
 void interruptSignalHandler( int signum )
 {
      if( signum == SIGINT || signum == SIGTERM )
@@ -32,7 +33,6 @@ struct Options
      Options() : port( 0 ) {}
 
      int port;
-     boost::filesystem::path cert;
 };
 
 
@@ -44,9 +44,8 @@ Options parseCommandLine( int argc, char** argv )
 
      po::options_description desc( "Allowed options" );
      desc.add_options()
-          ( "help,h", "show this help" )
-          ( "port,p", po::value( &opts.port )->default_value( 6001 ), "listening port" )
-          ( "certificate,c", po::value( &opts.cert ), "server certificate and private key file in PEM format" );
+          ( "help", "show this help" )
+          ( "port,p", po::value( &opts.port )->default_value( 6001 ), "listening port" );
 
      po::variables_map vm;
      po::store( po::parse_command_line( argc, argv, desc ), vm );
@@ -80,12 +79,18 @@ int main( int argc, char** argv )
                ERROR_INTERRUPT( "error while creating server socket on port " << options.port );
 
           if( BIO_do_accept( accept ) <= 0 )
+          {
+               BIO_free( accept );
                ERROR_INTERRUPT( "error binding server socket" );
+          }
 
           do
           {
                if( BIO_do_accept( accept ) <= 0 )
+               {
+                    BIO_free( accept );
                     ERROR_INTERRUPT( "error accepting connection" );
+               }
 
                BIO* client = BIO_pop( accept );
 

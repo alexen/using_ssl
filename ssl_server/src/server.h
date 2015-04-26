@@ -7,8 +7,7 @@
 
 #pragma once
 
-#include <boost/filesystem/path.hpp>
-#include <openssl/ssl.h>
+#include <openssl/bio.h>
 
 namespace openssl {
 
