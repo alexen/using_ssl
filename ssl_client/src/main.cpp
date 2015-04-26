@@ -22,6 +22,7 @@ struct Options
 
      std::string host;
      int port;
+     boost::filesystem::path cert;
 };
 
 
@@ -35,7 +36,8 @@ Options parseCommandLine( int argc, char** argv )
      desc.add_options()
           ( "help", "show this help" )
           ( "host,h", po::value( &opts.host )->default_value( "localhost" ), "server host" )
-          ( "port,p", po::value( &opts.port )->default_value( 6001 ), "server port" );
+          ( "port,p", po::value( &opts.port )->default_value( 6001 ), "server port" )
+          ( "certificate,c", po::value( &opts.cert ), "client certificate and private key file in PEM format" );
 
      po::variables_map vm;
      po::store( po::parse_command_line( argc, argv, desc ), vm );
