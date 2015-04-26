@@ -12,7 +12,8 @@
 
 namespace openssl {
 
-void do_server_loop( BIO* connection );
-void server_thread( BIO* client );
+SSL_CTX* get_server_ctx( const boost::filesystem::path& cert );
+int do_server_loop( SSL* ssl );
+void server_thread( SSL* ssl );
 
 } // namespace openssl
