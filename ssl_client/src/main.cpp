@@ -73,13 +73,40 @@ int main( int argc, char** argv )
                ERROR_INTERRUPT( "cannot connect to remote host " << hostPort << "\n" );
           }
 
-          std::cout << "connection opened\n";
+          SSL_CTX* ctx = openssl::get_client_ctx( options.cert );
+          SSL* ssl = SSL_new( ctx );
 
-          openssl::do_client_loop( connection );
+          if( !ssl )
+          {
+               BIO_free( connection );
+               SSL_CTX_free( ctx );
+               ERROR_INTERRUPT( "cannot create SSL on context" );
+          }
 
-          std::cout << "connection closed\n";
+          SSL_set_bio( ssl, connection, connection );
 
-          BIO_free( connection );
+          if( SSL_connect( ssl ) <= 0 )
+          {
+               SSL_free( ssl );
+               SSL_CTX_free( ctx );
+               ERROR_INTERRUPT( "cannot connect to SSL" );
+          }
+
+          std::cout << "SSL connection opened\n";
+
+          if( openssl::do_client_loop( ssl ) )
+          {
+               SSL_shutdown( ssl );
+          }
+          else
+          {
+               SSL_clear( ssl );
+          }
+
+          std::cout << "SSL connection closed\n";
+
+          SSL_free( ssl );
+          SSL_CTX_free( ctx );
      }
      catch( const std::exception& e )
      {
