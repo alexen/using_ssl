@@ -12,4 +12,5 @@ target_link_libraries(${NAME}
     ${OPENSSL_LIBRARIES}
     ${Boost_THREAD_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
 )

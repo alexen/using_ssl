@@ -5,7 +5,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set(OPENSSL_ROOT_DIR "/usr/local/openssl")
 set(BOOST_ROOT "/usr/local")
 
-find_package(Boost 1.58 REQUIRED COMPONENTS system thread)
+find_package(Boost 1.58 REQUIRED COMPONENTS system thread program_options)
 find_package(OpenSSL 1.0.2 REQUIRED)
 find_package(Threads REQUIRED)
 

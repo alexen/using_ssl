@@ -10,6 +10,7 @@
 #include <iostream>
 #include <boost/thread.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/program_options.hpp>
 
 #include <common/init.h>
 
@@ -26,40 +27,57 @@ void interruptSignalHandler( int signum )
 }
 
 
-const boost::filesystem::path getCertFileName( int argc, char** argv )
+struct Options
 {
-     const boost::filesystem::path certFileName =
-          argc > 1 ? argv[ 1 ] : getenv( "SERVER_CERT_FILE" );
+     Options() : port( 0 ) {}
 
-     if( certFileName.empty() )
+     int port;
+     boost::filesystem::path cert;
+};
+
+
+Options parseCommandLine( int argc, char** argv )
+{
+     namespace po = boost::program_options;
+
+     Options opts;
+
+     po::options_description desc( "Allowed options" );
+     desc.add_options()
+          ( "help,h", "show this help" )
+          ( "port,p", po::value( &opts.port )->default_value( 6001 ), "listening port" )
+          ( "certificate,c", po::value( &opts.cert ), "server certificate and private key file in PEM format" );
+
+     po::variables_map vm;
+     po::store( po::parse_command_line( argc, argv, desc ), vm );
+     po::notify( vm );
+
+     if( vm.count( "help" ) )
      {
-          ERROR_INTERRUPT( "no client's cert file set" );
-     }
-     else if( access( certFileName.c_str(), R_OK ) != 0 )
-     {
-          ERROR_INTERRUPT( "client's cert file \"" << certFileName << "\" can't be read" );
+          std::cout << desc << '\n';
+          exit( 0 );
      }
 
-     return certFileName;
+     return opts;
 }
 
 
 int main( int argc, char** argv )
 {
+     const auto options = parseCommandLine( argc, argv );
+
      signal( SIGINT, interruptSignalHandler );
      signal( SIGTERM, interruptSignalHandler );
 
      try
      {
-          const char* const PORT = "6001";
-          const auto certFile = getCertFileName( argc, argv );
-
           openssl::init();
 
-          BIO* accept = BIO_new_accept( const_cast< char* >( PORT ) );
+          BIO* accept =
+               BIO_new_accept( const_cast< char* >( boost::lexical_cast< std::string >( options.port ).c_str() ) );
 
           if( !accept )
-               ERROR_INTERRUPT( "error while creating server socket on port " << PORT );
+               ERROR_INTERRUPT( "error while creating server socket on port " << options.port );
 
           if( BIO_do_accept( accept ) <= 0 )
                ERROR_INTERRUPT( "error binding server socket" );
