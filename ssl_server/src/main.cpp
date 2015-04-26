@@ -6,21 +6,30 @@
 ///
 
 #include <unistd.h>
+#include <signal.h>
 #include <iostream>
 #include <boost/thread.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/exception/diagnostic_information.hpp>
 
 #include <common/init.h>
-#include <common/error.h>
 
 #include "server.h"
+
+static bool stop = false;
+
+void interruptSignalHandler( int signum )
+{
+     if( signum == SIGINT || signum == SIGTERM )
+     {
+          stop = true;
+     }
+}
 
 
 const boost::filesystem::path getCertFileName( int argc, char** argv )
 {
      const boost::filesystem::path certFileName =
-          argc > 1 ? argv[ 1 ] : getenv( "CLIENT_CERT_FILE" );
+          argc > 1 ? argv[ 1 ] : getenv( "SERVER_CERT_FILE" );
 
      if( certFileName.empty() )
      {
@@ -37,6 +46,9 @@ const boost::filesystem::path getCertFileName( int argc, char** argv )
 
 int main( int argc, char** argv )
 {
+     signal( SIGINT, interruptSignalHandler );
+     signal( SIGTERM, interruptSignalHandler );
+
      try
      {
           const char* const PORT = "6001";
@@ -52,8 +64,7 @@ int main( int argc, char** argv )
           if( BIO_do_accept( accept ) <= 0 )
                ERROR_INTERRUPT( "error binding server socket" );
 
-
-          while( true )
+          do
           {
                if( BIO_do_accept( accept ) <= 0 )
                     ERROR_INTERRUPT( "error accepting connection" );
@@ -62,10 +73,14 @@ int main( int argc, char** argv )
 
                boost::thread( boost::bind( openssl::server_thread, client ) ).detach();
           }
+          while( !stop );
+
+          BIO_free( accept );
      }
      catch( const std::exception& e )
      {
           std::cerr << "exception: " << boost::diagnostic_information( e ) << '\n';
      }
-}
 
+     return 0;
+}
