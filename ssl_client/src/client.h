@@ -12,7 +12,7 @@
 
 namespace openssl {
 
-SSL_CTX* get_client_ctx( const boost::filesystem::path& cert );
+SSL_CTX* get_client_ctx( const boost::filesystem::path& cert, const boost::filesystem::path& caFile );
 int do_client_loop( SSL* ssl );
 
 } // namespace openssl

@@ -13,6 +13,7 @@
 
 #include <common/init.h>
 #include <common/error.h>
+#include <common/tools.h>
 
 #include "client.h"
 
@@ -22,8 +23,10 @@ struct Options
      Options() : port( 0 ) {}
 
      std::string host;
+     std::string serverHostname;
      int port;
      boost::filesystem::path cert;
+     boost::filesystem::path caFile;
 };
 
 
@@ -38,7 +41,10 @@ Options parseCommandLine( int argc, char** argv )
           ( "help", "show this help" )
           ( "host,h", po::value( &opts.host )->default_value( "localhost" ), "server host" )
           ( "port,p", po::value( &opts.port )->default_value( 6001 ), "server port" )
-          ( "certificate,c", po::value( &opts.cert ), "client certificate and private key file in PEM format" );
+          ( "certificate,c", po::value( &opts.cert ), "client certificate and private key file in PEM format" )
+          ( "CAfile", po::value( &opts.caFile ), "file with CA certificates in PEM format" )
+          ( "server-name", po::value( &opts.serverHostname )->default_value( "server.alexen.org" ),
+               "server name that server certificate must contain" );
 
      po::variables_map vm;
      po::store( po::parse_command_line( argc, argv, desc ), vm );
@@ -54,12 +60,24 @@ Options parseCommandLine( int argc, char** argv )
 }
 
 
+std::ostream& operator<<( std::ostream& ostr, const Options& opts )
+{
+     ostr
+          << "connecting to " << opts.host << ":" << opts.port
+          << " using cert file " << opts.cert << " and CA file " << opts.caFile;
+
+     return ostr;
+}
+
+
 int main( int argc, char** argv )
 {
      try
      {
           const auto options = parseCommandLine( argc, argv );
           const auto hostPort = options.host + ":" + boost::lexical_cast< std::string >( options.port );
+
+          std::cout << "SSL client:\n" << options << std::endl;
 
           openssl::init();
 
@@ -76,7 +94,7 @@ int main( int argc, char** argv )
                ERROR_INTERRUPT( "cannot connect to remote host " << hostPort << "\n" );
           }
 
-          SSL_CTX* ctx = openssl::get_client_ctx( options.cert );
+          SSL_CTX* ctx = openssl::get_client_ctx( options.cert, options.caFile );
           SSL* ssl = SSL_new( ctx );
 
           if( !ssl )
@@ -93,6 +111,16 @@ int main( int argc, char** argv )
                SSL_free( ssl );
                SSL_CTX_free( ctx );
                ERROR_INTERRUPT( "cannot connect to SSL" );
+          }
+
+          const long err = openssl::post_connection_check( ssl, options.serverHostname.c_str() );
+
+          if( err != X509_V_OK )
+          {
+               SSL_free( ssl );
+               SSL_CTX_free( ctx );
+               ERROR_INTERRUPT( "error checking SSL object after connection: "
+                    << X509_verify_cert_error_string( err ) );
           }
 
           std::cout << "SSL connection opened\n";
