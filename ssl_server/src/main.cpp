@@ -17,6 +17,12 @@
 
 #include "server.h"
 
+/*
+ * Wrinting some code to imitate work in new branch
+ * to try pushing it into remote repository later
+ * */
+
+
 static bool stop = false;
 
 
