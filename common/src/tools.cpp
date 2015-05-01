@@ -15,6 +15,15 @@
 
 namespace openssl {
 
+namespace {
+namespace consts {
+
+static constexpr int ERROR = 0;
+static constexpr int SUCCESS = 1;
+
+} // namespace val
+} // namespace {unnamed}
+
 int verification_callback( int ok, X509_STORE_CTX* store )
 {
      if( !ok )
@@ -46,6 +55,69 @@ static long free_and_return( X509* cert, const long retCode = X509_V_ERR_APPLICA
 }
 
 
+static int checkParameter( const STACK_OF( CONF_VALUE )* val, const std::string& host )
+{
+     for( int j = 0; j < sk_CONF_VALUE_num( val ); ++j )
+     {
+          CONF_VALUE* nval = sk_CONF_VALUE_value( val, j );
+
+          if( std::string( nval->name ) == "DNS" && std::string( nval->value ) == host )
+          {
+               return consts::SUCCESS;
+          }
+     }
+
+     return consts::ERROR;
+}
+
+
+static STACK_OF( CONF_VALUE )* getParameter( X509_EXTENSION* ext )
+{
+     const std::string extstr = OBJ_nid2sn( OBJ_obj2nid( X509_EXTENSION_get_object( ext ) ) );
+
+     if( extstr != "subjectAltName" )
+          return nullptr;
+
+     const X509V3_EXT_METHOD *meth = X509V3_EXT_get( ext );
+
+     if( !meth )
+          return nullptr;
+
+     const unsigned char* data = ext->value->data;
+
+     STACK_OF( CONF_VALUE )* val =
+          meth->i2v(
+               meth,
+               meth->d2i( nullptr, &data, ext->value->length ),
+               nullptr
+          );
+
+     return val;
+}
+
+
+static int verifyCertificateExtensions( X509* cert, const std::string& host )
+{
+     const int extcount = X509_get_ext_count( cert );
+
+     if( extcount > 0 )
+     {
+          for( int i = 0; i < extcount; ++i )
+          {
+               STACK_OF( CONF_VALUE )* val = getParameter( X509_get_ext( cert, i ) );
+
+               if( !val )
+                    continue;
+
+               if( checkParameter( val, host ) == consts::SUCCESS )
+                    return consts::SUCCESS;
+          }
+     }
+
+     return consts::ERROR;
+}
+
+
 long post_connection_check( SSL* ssl, const char* host )
 {
      X509* cert = SSL_get_peer_certificate( ssl );
@@ -53,49 +125,7 @@ long post_connection_check( SSL* ssl, const char* host )
      if( !cert || !host )
           return free_and_return( cert );
 
-     const int extcount = X509_get_ext_count( cert );
-
-     int ok = 0;
-
-     if( extcount > 0 )
-     {
-          for( int i = 0; i < extcount; ++i )
-          {
-               X509_EXTENSION* ext = X509_get_ext( cert, i );
-               const std::string extstr = OBJ_nid2sn( OBJ_obj2nid( X509_EXTENSION_get_object( ext ) ) );
-
-               if( extstr == "subjectAltName" )
-               {
-                    const X509V3_EXT_METHOD *meth = X509V3_EXT_get( ext );
-
-                    if( !meth )
-                         break;
-
-                    const unsigned char* data = ext->value->data;
-
-                    STACK_OF( CONF_VALUE )* val =
-                         meth->i2v(
-                              meth,
-                              meth->d2i( nullptr, &data, ext->value->length ),
-                              nullptr
-                         );
-
-                    for( int j = 0; j < sk_CONF_VALUE_num( val ); ++j )
-                    {
-                         CONF_VALUE* nval = sk_CONF_VALUE_value( val, j );
-
-                         if( std::string( nval->name ) == "DNS" && std::string( nval->value ) == host )
-                         {
-                              ok = 1;
-                              break;
-                         }
-                    }
-               }
-
-               if( ok )
-                    break;
-          }
-     }
+     const int ok = verifyCertificateExtensions( cert, host );
 
      X509_NAME* subj = X509_get_subject_name( cert );
 
