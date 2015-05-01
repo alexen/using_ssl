@@ -10,10 +10,11 @@
 #include <iostream>
 #include <openssl/err.h>
 #include <common/error.h>
+#include <common/tools.h>
 
 namespace openssl {
 
-SSL_CTX* get_server_ctx( const boost::filesystem::path& cert )
+SSL_CTX* get_server_ctx( const boost::filesystem::path& cert, const boost::filesystem::path& caFile )
 {
      static constexpr int SUCCESS = 1;
 
@@ -22,11 +23,20 @@ SSL_CTX* get_server_ctx( const boost::filesystem::path& cert )
      if( !ctx )
           ERROR_INTERRUPT( "cannot create SSL context" );
 
+     if( SSL_CTX_load_verify_locations( ctx, caFile.c_str(), nullptr ) != SUCCESS )
+          ERROR_INTERRUPT( "cannot load CA file " << caFile );
+
+     if( SSL_CTX_set_default_verify_paths( ctx ) != SUCCESS )
+          ERROR_INTERRUPT( "cannot load default CA paths" );
+
      if( SSL_CTX_use_certificate_chain_file( ctx, cert.c_str() ) != SUCCESS )
           ERROR_INTERRUPT( "cannot load certificate from file " << cert );
 
      if( SSL_CTX_use_PrivateKey_file( ctx, cert.c_str(), SSL_FILETYPE_PEM ) != SUCCESS )
           ERROR_INTERRUPT( "cannot load private key from file " << cert );
+
+     SSL_CTX_set_verify( ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, openssl::verification_callback );
+     SSL_CTX_set_verify_depth( ctx, 4 );
 
      return ctx;
 }
@@ -57,10 +67,16 @@ int do_server_loop( SSL* ssl )
 }
 
 
-void server_thread( SSL* ssl )
+void server_thread( SSL* ssl, const std::string& clientHostname )
 {
      if( SSL_accept( ssl ) <= 0 )
           ERROR_INTERRUPT( "cannot accept SSL connection" );
+
+     const long err = post_connection_check( ssl, clientHostname.c_str() );
+
+     if( err != X509_V_OK )
+          ERROR_INTERRUPT( "error checking SSL object after connection: "
+               << X509_verify_cert_error_string( err ) );
 
      std::cout << "SSL connection opened" << std::endl;
 

@@ -12,8 +12,8 @@
 
 namespace openssl {
 
-SSL_CTX* get_server_ctx( const boost::filesystem::path& cert );
+SSL_CTX* get_server_ctx( const boost::filesystem::path& cert, const boost::filesystem::path& caFile );
 int do_server_loop( SSL* ssl );
-void server_thread( SSL* ssl );
+void server_thread( SSL* ssl, const std::string& clientHostname );
 
 } // namespace openssl

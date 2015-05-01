@@ -35,6 +35,8 @@ struct Options
 
      int port;
      boost::filesystem::path cert;
+     boost::filesystem::path caFile;
+     std::string clientHostname;
 };
 
 
@@ -48,7 +50,10 @@ Options parseCommandLine( int argc, char** argv )
      desc.add_options()
           ( "help", "show this help" )
           ( "port,p", po::value( &opts.port )->default_value( 6001 ), "listening port" )
-          ( "certificate,c", po::value( &opts.cert ), "server certificate and private key file in PEM format" );
+          ( "certificate,c", po::value( &opts.cert ), "server certificate and private key file in PEM format" )
+          ( "CAfile", po::value( &opts.caFile ), "file with CA certificates in PEM format" )
+          ( "client-name", po::value( &opts.clientHostname )->default_value( "client.alexen.org" ),
+               "client name that client certificate must contain" );
 
      po::variables_map vm;
      po::store( po::parse_command_line( argc, argv, desc ), vm );
@@ -64,6 +69,16 @@ Options parseCommandLine( int argc, char** argv )
 }
 
 
+std::ostream& operator<<( std::ostream& ostr, const Options& opts )
+{
+     ostr
+          << "listening to " << opts.port
+          << " using cert file " << opts.cert << " and CA file " << opts.caFile;
+
+     return ostr;
+}
+
+
 int main( int argc, char** argv )
 {
      signal( SIGINT, interruptSignalHandler );
@@ -72,6 +87,8 @@ int main( int argc, char** argv )
      try
      {
           const auto options = parseCommandLine( argc, argv );
+
+          std::cout << "SSL server:\n" << options << std::endl;
 
           openssl::init();
 
@@ -87,7 +104,7 @@ int main( int argc, char** argv )
                ERROR_INTERRUPT( "error binding server socket" );
           }
 
-          SSL_CTX* ctx = openssl::get_server_ctx( options.cert );
+          SSL_CTX* ctx = openssl::get_server_ctx( options.cert, options.caFile );
 
           do
           {
@@ -111,7 +128,7 @@ int main( int argc, char** argv )
 
                SSL_set_bio( ssl, client, client );
 
-               boost::thread( boost::bind( openssl::server_thread, ssl ) ).detach();
+               boost::thread( boost::bind( openssl::server_thread, ssl, boost::cref( options.clientHostname ) ) ).detach();
           }
           while( !stop );
 
