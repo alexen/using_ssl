@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.2)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wpedantic -Wextra")
+
 set(OPENSSL_ROOT_DIR "/usr/local/openssl")
 set(BOOST_ROOT "/usr/local")
 

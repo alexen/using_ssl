@@ -12,5 +12,6 @@
 namespace openssl {
 
 int verification_callback( int ok, X509_STORE_CTX* store );
+long post_connection_check( SSL* ssl, const char* host );
 
 } // namespace openssl

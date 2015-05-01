@@ -5,8 +5,6 @@ add_executable(${NAME}
     src/main.cpp
 )
 
-set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
-
 target_link_libraries(${NAME}
     common
     ${OPENSSL_LIBRARIES}
