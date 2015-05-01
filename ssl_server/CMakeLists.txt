@@ -8,6 +8,7 @@ add_executable(${NAME}
 set_property(TARGET ${NAME} PROPERTY CXX_STANDARD 11)
 
 target_link_libraries(${NAME}
+    common
     ${CMAKE_THREAD_LIBS_INIT}
     ${OPENSSL_LIBRARIES}
     ${Boost_THREAD_LIBRARY}

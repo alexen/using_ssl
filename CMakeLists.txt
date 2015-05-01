@@ -9,5 +9,6 @@ find_package(Boost 1.58 REQUIRED COMPONENTS system thread program_options)
 find_package(OpenSSL 1.0.2 REQUIRED)
 find_package(Threads REQUIRED)
 
+add_subdirectory(common)
 add_subdirectory(ssl_server)
 add_subdirectory(ssl_client)

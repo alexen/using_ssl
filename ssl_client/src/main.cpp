@@ -12,6 +12,7 @@
 #include <boost/program_options.hpp>
 
 #include <common/init.h>
+#include <common/error.h>
 
 #include "client.h"
 
