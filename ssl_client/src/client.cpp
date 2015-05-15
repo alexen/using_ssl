@@ -63,7 +63,7 @@ int do_client_loop( SSL* ssl )
 {
      using namespace report;
 
-     Logger( Severity::Info ) << "[thread: " << boost::this_thread::get_id() << "] " << "running client main loop";
+     Logger( Severity::Info ) << "running client main loop";
 
      const int buff_size = 80;
      char buff[ buff_size ] = { 0 };
@@ -76,24 +76,22 @@ int do_client_loop( SSL* ssl )
           for( int total_written = 0, written = 0; total_written < buff_size; total_written += written )
           {
                Logger( Severity::Debug )
-                    << "[thread: " << boost::this_thread::get_id() << "] "
                     << "write to SSL connection, total written " << total_written << " bytes";
 
                written = SSL_write( ssl, buff + total_written, strlen( buff ) - total_written );
 
                Logger( Severity::Debug )
-                    << "[thread: " << boost::this_thread::get_id() << "] "
                     << "written " << written << " bytes";
 
                if( written <= 0 )
                {
-                    Logger( Severity::Info ) << "[thread: " << boost::this_thread::get_id() << "] " << "client loop finished";
+                    Logger( Severity::Info ) << "client loop finished";
                     return 0;
                }
           }
      }
 
-     Logger( Severity::Info ) << "[thread: " << boost::this_thread::get_id() << "] " << "client loop finished";
+     Logger( Severity::Info ) << "client loop finished";
 
      return 1;
 }
