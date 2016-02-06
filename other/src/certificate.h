@@ -16,13 +16,7 @@
 
 #include <openssl/x509.h>
 
-using Buffer = std::vector< char >;
-
-template< typename T, typename RetT, typename ArgT >
-using deleter_of = RetT(*)( ArgT );
-
-template< typename T, typename DeleterRetT = void, typename DeleterArgT = T* >
-using autoclean_unique_ptr = std::unique_ptr< T, deleter_of< T, DeleterRetT, DeleterArgT > >;
+#include <common/types.h>
 
 namespace openssl {
 
