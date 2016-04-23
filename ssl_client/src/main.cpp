@@ -85,7 +85,7 @@ int main( int argc, char** argv )
 
           if( !connection )
           {
-               ERROR_INTERRUPT( "cannot craete BIO connection" );
+               ERROR_INTERRUPT( "cannot create BIO connection" );
           }
 
           if( BIO_do_connect( connection ) <= 0 )
